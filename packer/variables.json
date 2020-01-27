@@ -1,0 +1,8 @@
+{
+  "project_id": "infra-266212",
+  "source_image": "ubuntu-1604-xenial-v20200108",
+  "machine_type": "f1-micro",
+  "image_description": "Canonical, Ubuntu, 16.04 LTS, amd64 xenial image",
+  "disk_type": "pd-standard",
+  "tags": "puma-server"
+}
