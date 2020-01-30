@@ -15,5 +15,5 @@
 # }
 
 
-db_disk_image      = "reddit-db"
-app_disk_image     = "reddit-app"
+#db_disk_image      = "reddit-db"
+#app_disk_image     = "reddit-app"

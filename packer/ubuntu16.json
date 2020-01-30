@@ -1,19 +1,20 @@
 {
    "variables":{
-        "project_id": "variables.json",
-        "source_image": "variables.json",
-        "machine_type": "variables.json",
-        "image_description": "variables.json",
-        "disk_size": "10",
-        "disk_type": "variables.json",
-        "tags": "variables.json"
+           "project_id": "variables.json",
+         	 "machine_type": "variables.json",
+         	 "source_image_family": "variables.json",
+         	 "networks": "variables.json",
+           "tags": "variables.json",
+           "disk_type": "variables.json",
+           "disk_size": "variables.json",
+           "image_description": "variables.json"
       },
    "builders": [
       {
       "type": "googlecompute",
       "project_id": "{{user `project_id`}}",
       "image_name": "reddit-base-{{timestamp}}",
-      "source_image": "{{user `source_image`}}",
+      "source_image_family": "{{user `source_image_family`}}",
       "zone": "europe-west1-b",
       "ssh_username": "appuser",
       "machine_type": "{{user `machine_type`}}",
