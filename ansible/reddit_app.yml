@@ -1,0 +1,78 @@
+
+
+# Setup and configure ruby things for reddit app
+- name: "Reddit App: Configure app environment"
+  hosts: all
+  gather_facts: no
+  become: yes
+
+  tasks:
+  - name: Install ruby and rubygems and required packages
+    apt: "name={{ item }} state=present"
+    with_items:
+      - ruby-full
+      - ruby-dev
+      - build-essential
+
+  - name: Install Ruby bundler
+    gem:
+      name: bundler
+      state: present
+      user_install: no
+
+# Setup and configure mongodb for reddit app
+- name: "Reddit App: Install mongodb"
+  hosts: all
+  gather_facts: no
+  become: yes
+
+  tasks:
+  - name: Install mongodb package
+    debug:
+      msg: "В этом сценарии нужно добавить модули для установки mongodb, после можно удалить вызов модуля debug, который выводит это сообщение"
+
+  # - name: MongoDB - Import public key
+  #   apt_key:
+  #     keyserver: hkp://keyserver.ubuntu.com:80
+  #     id: 7F0CEB10
+
+  - name: Shell
+    shell: 'wget -qO - https://www.mongodb.org/static/pgp/server-4.2.asc | sudo apt-key add -'
+
+  - name: MongoDB - Add repository
+    apt_repository:
+      filename: '/etc/apt/sources.list.d/mongodb-org-4.2.list'
+      repo: 'deb http://repo.mongodb.org/apt/ubuntu xenial/mongodb-org/4.2 multiverse'
+      state: present
+      update_cache: yes
+
+  - name: MongoDB - Install MongoDB
+    apt:
+      name: mongodb-org
+      state: present
+      update_cache: yes
+
+# Deploy reddit app
+- name: "Reddit App: Deploy application"
+  hosts: 104.155.110.226
+  gather_facts: no
+
+  tasks:
+    - name: Remove me after adding real things
+      debug:
+        msg: "В этом сценарии нужно добавить модули для деплоя приложения, после можно удалить вызов модуля debug, который выводит это сообщение"
+    - name: Get code from repository
+      git:
+        repo: 'https://github.com/Artemmkin/reddit.git'
+        dest: '/home/appuser/reddit'
+        version: monolith
+      notify: restart puma
+    - name: bundle install
+      bundler:
+        state: present
+        chdir: '/home/appuser/reddit'
+
+  handlers:
+  - name: restart puma
+    become: true
+    systemd: name=puma state=restarted
