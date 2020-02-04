@@ -1,2 +1,5 @@
-[reddit_app]
-104.155.110.226
+[app]
+reddit-app ansible_ssh_host=35.233.20.124
+
+[db]
+reddit-db ansible_ssh_host=35.241.253.227

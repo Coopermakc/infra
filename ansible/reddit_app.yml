@@ -1,67 +1,39 @@
-
-
-# Setup and configure ruby things for reddit app
-- name: "Reddit App: Configure app environment"
+---
+- name: Configure hosts & deploy application
   hosts: all
-  gather_facts: no
-  become: yes
-
+  vars:
+    mongo_bind_ip: 0.0.0.0
+    db_host: 10.132.15.197
   tasks:
-  - name: Install ruby and rubygems and required packages
-    apt: "name={{ item }} state=present"
-    with_items:
-      - ruby-full
-      - ruby-dev
-      - build-essential
+    - name: Change mongo config file
+      become: true
+      template:
+        src: templates/mongod.conf.j2
+        dest: /etc/mongod.conf
+        mode: 0644
+      tags: db-tag
+      notify: restart mongod
 
-  - name: Install Ruby bundler
-    gem:
-      name: bundler
-      state: present
-      user_install: no
+    - name: Add unit file for Puma
+      become: true
+      copy:
+        src: files/puma.service
+        dest: /etc/systemd/system/puma.service
+      tags: app-tag
+      notify: reload puma
 
-# Setup and configure mongodb for reddit app
-- name: "Reddit App: Install mongodb"
-  hosts: all
-  gather_facts: no
-  become: yes
+    - name: Add config for DB connection
+      template:
+        src: templates/db_config.j2
+        dest: /home/appuser/db_config
+      tags: app-tag
 
-  tasks:
-  - name: Install mongodb package
-    debug:
-      msg: "В этом сценарии нужно добавить модули для установки mongodb, после можно удалить вызов модуля debug, который выводит это сообщение"
+    - name: enable puma
+      become: true
+      systemd: name=puma enabled=yes
+      tags: app tag
 
-  # - name: MongoDB - Import public key
-  #   apt_key:
-  #     keyserver: hkp://keyserver.ubuntu.com:80
-  #     id: 7F0CEB10
-
-  - name: Shell
-    shell: 'wget -qO - https://www.mongodb.org/static/pgp/server-4.2.asc | sudo apt-key add -'
-
-  - name: MongoDB - Add repository
-    apt_repository:
-      filename: '/etc/apt/sources.list.d/mongodb-org-4.2.list'
-      repo: 'deb http://repo.mongodb.org/apt/ubuntu xenial/mongodb-org/4.2 multiverse'
-      state: present
-      update_cache: yes
-
-  - name: MongoDB - Install MongoDB
-    apt:
-      name: mongodb-org
-      state: present
-      update_cache: yes
-
-# Deploy reddit app
-- name: "Reddit App: Deploy application"
-  hosts: 104.155.110.226
-  gather_facts: no
-
-  tasks:
-    - name: Remove me after adding real things
-      debug:
-        msg: "В этом сценарии нужно добавить модули для деплоя приложения, после можно удалить вызов модуля debug, который выводит это сообщение"
-    - name: Get code from repository
+    - name: Fetch the latest version of application code
       git:
         repo: 'https://github.com/Artemmkin/reddit.git'
         dest: '/home/appuser/reddit'
@@ -73,6 +45,14 @@
         chdir: '/home/appuser/reddit'
 
   handlers:
-  - name: restart puma
-    become: true
-    systemd: name=puma state=restarted
+    - name: restart mongod
+      become: true
+      service: name=mongod state=restarted
+
+    - name: reload puma
+      become: true
+      systemd: name=puma state=reloaded
+
+    - name: restart puma
+      become: true
+      systemd: name=puma state=restarted
